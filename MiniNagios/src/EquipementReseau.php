@@ -36,6 +36,20 @@ class EquipementReseau
         $this->ip = $ip;
     }
 
+    // Obligé d'accéder à mes attributs pour la persistance
+
+    public function getHostname(): string {
+        return $this->hostname;
+    }
+
+    /**
+     * @return string
+     */
+    public function getIp(): string
+    {
+        return $this->ip;
+    }
+
     // MÉTHODE : Une action que l'objet peut faire
     public function afficherStatut(): string
     {

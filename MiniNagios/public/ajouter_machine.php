@@ -14,7 +14,7 @@
 <body>
 <h2>🏭 Provisionner un Serveur Sécurisé</h2>
 
-<form method="POST" action="traitement.php">
+<form method="POST" action="traitementPersisteServeur.php">
     <label>Nom d'hôte (Hostname) :</label>
     <input type="text" name="hostname" required placeholder="Ex: SRV-DB-02 (Lettres, chiffres, tirets)">
 
