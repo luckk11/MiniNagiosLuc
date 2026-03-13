@@ -28,4 +28,14 @@ class ServeurRepository
             'os'       => $serveur->getOs()
         ]);
     }
+    public function listerTous(): array
+    {
+        $sql = "SELECT * FROM serveurs ORDER BY date_creation DESC";
+
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute();
+
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+    }
 }
+
