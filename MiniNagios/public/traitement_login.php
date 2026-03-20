@@ -1,57 +1,57 @@
 <?php
-// 1. Inclusion de l'autoloader pour charger les classes (Database, etc.)
-require_once __DIR__ . '/../vendor/autoload.php';
+require '../vendor/autoload.php';
 
 use App\Database;
+// On commence par démarrer la session pour pouvoir stocker l'ID de l'admin plus tard
+session_start();
 
-// 2. On vérifie que les données arrivent bien en POST
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+// 1. Connexion à la base de données (À adapter selon vos paramètres de connexion)
+$host = 'localhost';
+$dbname = 'mininagios';
+$user_db = 'root';
+$pass_db = '';
 
-    // Récupération et nettoyage rapide des données saisies
-    $email = $_POST['email'] ?? '';
-    $password = $_POST['password'] ?? '';
+try {
+    $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $user_db, $pass_db);
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+} catch (PDOException $e) {
+    die("Erreur de connexion : " . $e->getMessage());
+}
 
-    if (!empty($email) && !empty($password)) {
-        try {
-            $pdo = Database::getConnection();
+// 2. Vérification de la soumission du formulaire
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['email'], $_POST['password'])) {
 
-            // 3. Recherche de l'administrateur par son email
-            $sql = "SELECT id, email, mot_de_passe FROM administrateurs WHERE email = :email LIMIT 1";
-            $stmt = $pdo->prepare($sql);
-            $stmt->execute(['email' => $email]);
+    $email = trim($_POST['email']);
+    $password_saisi = $_POST['password'];
 
-            $user = $stmt->fetch(PDO::FETCH_ASSOC);
+    // 3. Recherche de l'administrateur par son email
+    $stmt = $pdo->prepare("SELECT id, password_hash FROM administrateurs WHERE email = :email");
+    $stmt->execute(['email' => $email]);
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-            // 4. Vérification du mot de passe avec password_verify()
-            // password_verify compare le texte brut saisi avec le hash stocké en BDD
-            if ($user && password_verify($password, $user['mot_de_passe'])) {
+    // 4. Vérification du mot de passe avec password_verify
+    // Le hash $2y$12$... est automatiquement reconnu par cette fonction
+    if ($user && password_verify($password_saisi, $user['password_hash'])) {
 
-                // --- CAS : OK ---
-                session_start();
-                $_SESSION['admin_id'] = $user['id'];
-                $_SESSION['admin_email'] = $user['email'];
+        // SUCCÈS : On régénère l'ID de session par sécurité (anti-fixation de session)
+        session_regenerate_id();
 
-                // Redirection vers le dashboard
-                header("Location: dashboard.php");
-                exit;
+        // Stockage des informations en session
+        $_SESSION['admin_id'] = $user['id'];
+        $_SESSION['email'] = $email;
 
-            } else {
-                // --- CAS : KO (Identifiants incorrects) ---
-                header("Location: login.php?erreur=1");
-                exit;
-            }
+        // Redirection vers le tableau de bord
+        header('Location: dashboard.php');
+        exit();
 
-        } catch (\Exception $e) {
-            // Erreur de base de données
-            die("Erreur technique : " . $e->getMessage());
-        }
     } else {
-        // Champs vides
-        header("Location: login.php?erreur=1");
-        exit;
+        // ÉCHEC : Identifiants incorrects
+        header('Location: login.php?erreur=1');
+        exit();
     }
+
 } else {
-    // Si on accède au fichier en direct sans passer par le formulaire
-    header("Location: login.php");
-    exit;
+    // Si on tente d'accéder au fichier sans passer par le formulaire
+    header('Location: login.php');
+    exit();
 }
