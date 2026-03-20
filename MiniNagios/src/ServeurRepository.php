@@ -37,5 +37,19 @@ class ServeurRepository
 
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
+
+    public function supprimerParId(int $id): void{
+
+        $sql = "DELETE FROM serveurs WHERE id = :id";
+        $stmt = $this->pdo->prepare($sql);
+
+        $stmt->execute([
+            'id' => $id
+        ]);
+    }
+
 }
+
+
+
 
