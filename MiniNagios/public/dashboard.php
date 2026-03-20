@@ -1,23 +1,16 @@
 <?php
+require '../vendor/autoload.php';
 
-require_once '../vendor/autoload.php'; // Ou vos require_once manuels selon votre structure
-
+use App\ServeurRepository ;
 use App\Database;
-use App\ServeurRepository;
-
-// 1. Connexion à la base de données
-$pdo = Database::getConnection();
-
-// 2. Instanciation du repository
-$repository = new ServeurRepository($pdo);
-
-// 3. Récupération de la liste des serveurs
-$serveurs = $repository->listerTous();
+$monPDO = \App\Database::getConnection() ;
+$monRepository = new ServeurRepository($monPDO) ;
+$monTableauServeurs = $monRepository->listerTous() ;
 ?>
 
 
 
-<<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
@@ -86,7 +79,7 @@ $serveurs = $repository->listerTous();
     </tr>
     </thead>
     <tbody>
-    <?php foreach ($serveurs as $s): ?>
+    <?php foreach ($monTableauServeurs as $s): ?>
         <tr>
             <td><strong><?= htmlspecialchars($s['hostname']) ?></strong></td>
             <td><code><?= htmlspecialchars($s['ip']) ?></code></td>
